@@ -935,6 +935,13 @@ def : MnemonicAlias<"move", "mv">;
 def : MnemonicAlias<"scall", "ecall">;
 def : MnemonicAlias<"sbreak", "ebreak">;
 
+//===----------------------------------------------------------------------===//
+// xBGAS Pseudo Instructions
+//===----------------------------------------------------------------------===//
+def : InstAlias<"movebe $rd, $rs1", (EADDI   GPR:$rd, EPR:$rs1, 0)>;
+def : InstAlias<"moveeb $rd, $rs1", (EADDIE  EPR:$rd, GPR:$rs1, 0)>;
+def : InstAlias<"moveee $rd, $rs1", (EADDIX  EPR:$rd, EPR:$rs1, 0)>;
+
 // This alias was added to the spec in December 2020. Don't print it by default
 // to allow assembly we print to be compatible with versions of GNU assembler
 // that don't support this alias.
