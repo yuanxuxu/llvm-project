@@ -446,8 +446,8 @@ class Store_Erri<bits<3> funct3, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 class Store_Eerri<bits<3> funct3, string opcodestr>
     : RVInstS<funct3, OPC_ESTORE, (outs),
-              (ins EPR:$rs2, GPR:$rs1, simm12:$imm12),
-              opcodestr, "$rs2, ${imm12}, ${rs1}">;
+              (ins EPR:$rd, GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rd, ${rs1}, ${imm12}">;
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class ALU_Lrre<bits<7> funct7, bits<3> funct3, string opcodestr>
@@ -478,14 +478,14 @@ class Store_Mre<bits<3> funct3, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class Store_Mer<bits<3> funct3, string opcodestr>
     : RVInstS<funct3, OPC_ESTORE, (outs),
-              (ins GPR:$rs2, EPR:$rs1, simm12:$imm12),
-              opcodestr, "$rs2, ${imm12}(${rs1})">;
+              (ins GPR:$rd, EPR:$rs1, simm12:$imm12),
+              opcodestr, "$rd, ${rs1}, ${imm12}">;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class Store_Mee<bits<3> funct3, string opcodestr>
     : RVInstS<funct3, OPC_EARITH, (outs),
-              (ins EPR:$rs2, EPR:$rs1, simm12:$imm12),
-              opcodestr, "$rs2, ${imm12}(${rs1})">;
+              (ins EPR:$rd, EPR:$rs1, simm12:$imm12),
+              opcodestr, "$rd, ${rs1}, ${imm12}">;
 
 //===----------------------------------------------------------------------===//
 // Instructions
