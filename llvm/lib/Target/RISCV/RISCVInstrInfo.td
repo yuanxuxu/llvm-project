@@ -690,7 +690,7 @@ let Predicates = [IsRV64] in {
 
   // -- Raw Integer Load/Store: xBGAS Spec Table 6
   def ERLD : ALU_Lrre<0b1010101, 0b011, "erld">;
-  def ERLE  : ALU_Lere<0b0100001, 0b100, "erlbu">;
+  def ERLE  : ALU_Lere<0b0100001, 0b100, "erle">;
   def ERSD  : ALU_Srre<0b0100010, 0b011, "ersd">;
   def ERSE  : ALU_Sere<0b0100011, 0b011, "erse">;
 } // Predicates = [IsRV64]
