@@ -1,4 +1,4 @@
-//===-- RISCVInstrInfo.td - Target Description for RISCV ---*- tablegen -*-===//
+
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -422,6 +422,72 @@ class Priv<string opcodestr, bits<7> funct7>
               opcodestr, "">;
 
 //===----------------------------------------------------------------------===//
+// xBGAS Instruction Class Templates
+//===----------------------------------------------------------------------===//
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class Load_Eri<bits<3> funct3, string opcodestr>
+    : RVInstI<funct3, OPC_ELOAD, (outs GPR:$rd), (ins GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rd, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class Load_Eeri<bits<3> funct3, string opcodestr>
+    : RVInstI<funct3, OPC_ELOAD, (outs EPR:$rd), (ins GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rd, ${imm12}(${rs1})">;
+
+// Operands for stores are in the order srcreg, base, offset rather than
+// reflecting the order these fields are specified in the instruction
+// encoding.
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class Store_Erri<bits<3> funct3, string opcodestr>
+    : RVInstS<funct3, OPC_ESTORE, (outs),
+              (ins GPR:$rs2, GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rs2, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class Store_Eerri<bits<3> funct3, string opcodestr>
+    : RVInstS<funct3, OPC_ESTORE, (outs),
+              (ins EPR:$rs2, GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rs2, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class ALU_Lrre<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_ERAW, (outs GPR:$rd), (ins GPR:$rs1, EPR:$rs2),
+              opcodestr, "$rd, $rs1, $rs2">;
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class ALU_Lere<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_ERAW, (outs EPR:$rd), (ins GPR:$rs1, EPR:$rs2),
+              opcodestr, "$rd, $rs1, $rs2">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class ALU_Srre<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_ERAW, (outs EPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+              opcodestr, "$rd, $rs1, $rs2">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class ALU_Sere<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_ERAW, (outs EPR:$rd), (ins EPR:$rs1, GPR:$rs2),
+              opcodestr, "$rd, $rs1, $rs2">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class Store_Mre<bits<3> funct3, string opcodestr>
+    : RVInstS<funct3, OPC_ESTORE, (outs),
+              (ins EPR:$rs2, GPR:$rs1, simm12:$imm12),
+              opcodestr, "$rs2, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class Store_Mer<bits<3> funct3, string opcodestr>
+    : RVInstS<funct3, OPC_ESTORE, (outs),
+              (ins GPR:$rs2, EPR:$rs1, simm12:$imm12),
+              opcodestr, "$rs2, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class Store_Mee<bits<3> funct3, string opcodestr>
+    : RVInstS<funct3, OPC_EARITH, (outs),
+              (ins EPR:$rs2, EPR:$rs1, simm12:$imm12),
+              opcodestr, "$rs2, ${imm12}(${rs1})">;
+
+//===----------------------------------------------------------------------===//
 // Instructions
 //===----------------------------------------------------------------------===//
 
@@ -574,6 +640,59 @@ def SRLW  : ALUW_rr<0b0000000, 0b101, "srlw">,
             Sched<[WriteIALU32, ReadIALU32, ReadIALU32]>;
 def SRAW  : ALUW_rr<0b0100000, 0b101, "sraw">,
             Sched<[WriteIALU32, ReadIALU32, ReadIALU32]>;
+} // Predicates = [IsRV64]
+
+//===----------------------------------------------------------------------===//
+// xBGAS Instructions
+//===----------------------------------------------------------------------===//
+// -- Extended Load Instructions: xBGAS Spec Table 2
+def ELW  : Load_Eri<0b010, "elw">;
+def ELH  : Load_Eri<0b001, "elh">;
+def ELHU : Load_Eri<0b101, "elhu">;
+def ELB  : Load_Eri<0b000, "elb">;
+def ELBU : Load_Eri<0b100, "elbu">;
+
+// -- Extended Store Instructions: xBGAS Spec Table 3
+def ESW  : Store_Erri<0b010, "esw">;
+def ESH  : Store_Erri<0b001, "esh">;
+def ESB  : Store_Erri<0b000, "esb">;
+
+// -- Raw Integer Load/Store: xBGAS Spec Table 6
+def ERLW  : ALU_Lrre<0b1010101, 0b010, "erlw">;
+def ERLH  : ALU_Lrre<0b1010101, 0b001, "erlh">;
+def ERLHU : ALU_Lrre<0b1010101, 0b101, "erlhu">;
+def ERLB  : ALU_Lrre<0b1010101, 0b000, "erlb">;
+def ERLBU : ALU_Lrre<0b1010101, 0b100, "erlbu">;
+def ERSW  : ALU_Srre<0b0100010, 0b010, "ersw">;
+def ERSH  : ALU_Srre<0b0100010, 0b001, "ersh">;
+def ERSB  : ALU_Srre<0b0100010, 0b000, "ersb">;
+
+// -- Address Management Instructions: xBGAS Spec Table 7
+def EADDI  : Store_Mer<0b110, "eaddi">;
+def EADDIE : Store_Mre<0b111, "eaddie">;
+def EADDIX : Store_Mee<0b111, "eaddix">;
+
+// -- RV64I Compatible xBGAS Instructions
+let Predicates = [IsRV64] in {
+  // -- 64-bit Extended Load: xBGAS Spec Table 2
+  def ELD  : Load_Eri<0b011, "eld">;
+
+  // -- 64-bit Extended Store: xBGAS Spec Table 3
+  def ESD  : Store_Erri<0b011, "esd">;
+
+  // -- Extended Quad and E-Loads: xBGAS Spec Table 4
+  def ELQ  : Load_Eri<0b110, "elq">;
+  def ELE  : Load_Eeri<0b111, "ele">;
+
+  // -- Extended Quad and E-Stores: xBGAS Spec Table 5
+  def ESQ  : Store_Erri<0b100, "esq">;
+  def ESE  : Store_Eerri<0b101, "ese">;
+
+  // -- Raw Integer Load/Store: xBGAS Spec Table 6
+  def ERLD : ALU_Lrre<0b1010101, 0b011, "erld">;
+  def ERLE  : ALU_Lere<0b0100001, 0b100, "erlbu">;
+  def ERSD  : ALU_Srre<0b0100010, 0b011, "ersd">;
+  def ERSE  : ALU_Sere<0b0100011, 0b011, "erse">;
 } // Predicates = [IsRV64]
 
 //===----------------------------------------------------------------------===//
