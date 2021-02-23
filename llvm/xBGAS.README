@@ -21,6 +21,7 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE="Debug" \
   -DDEFAULT_SYSROOT="/path/to/riscv-gcc-install-path/riscv32-unknown-elf" \
   -DGCC_INSTALL_PREFIX="/path/to/riscv-gcc-install-path" \
   -DLLVM_DEFAULT_TARGET_TRIPLE="riscv32-unknown-elf" \
+  -DLLVM_TARGETS_TO_BUILD="RISCV" \
   -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="RISCV" ../
 make
 
