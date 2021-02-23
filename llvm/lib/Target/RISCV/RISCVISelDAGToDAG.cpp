@@ -866,8 +866,7 @@ bool RISCVDAGToDAGISel::SelectAddrXB(SDValue Addr, SDValue &Base) {
     LLVM_DEBUG(dbgs() << "SelectAddrXB MemSDNode Node:\nNode:    ");
     LLVM_DEBUG(Addr->dump());
     LLVM_DEBUG(dbgs() << "AddrSpace=" << M->getPointerInfo().getAddrSpace());
-    //if( M->getPointerInfo().getAddrSpace() == _XBGAS_ADDR_SPACE_ ){
-    if( M->getPointerInfo().getAddrSpace() == 0 ){
+    if( M->getPointerInfo().getAddrSpace() == _XBGAS_ADDR_SPACE_ ){  
       LLVM_DEBUG(dbgs() << "Memory node is xBGAS address space\n");
       Base = Addr;
       return true;
