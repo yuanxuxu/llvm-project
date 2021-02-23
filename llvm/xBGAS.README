@@ -35,3 +35,21 @@ Now, use the following build directions (from ~/xbgas-llvm/build/)
 
 
 This will build and link an rv32i binary.
+
+================================================================================
+Building with debug assertions enabled
+
+cmake -G Ninja -DCMAKE_BUILD_TYPE="Debug" \
+  -DLLVM_ENABLE_ASSERTIONS=On \
+  -DBUILD_SHARED_LIBS=True -DLLVM_USE_SPLIT_DWARF=True \
+  -DLLVM_OPTIMIZED_TABLEGEN=True \
+  -DLLVM_BUILD_TESTS=True \
+  -DDEFAULT_SYSROOT="/path/to/riscv-gcc-install-path/riscv32-unknown-elf" \
+  -DGCC_INSTALL_PREFIX="/path/to/riscv-gcc-install-path" \
+  -DLLVM_DEFAULT_TARGET_TRIPLE="riscv32-unknown-elf" \
+  -DLLVM_TARGETS_TO_BUILD="RISCV" \
+  -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="RISCV" ../
+make
+
+..then use:
+./build/bin/clang -march=rv32i <options> -mllvm -debug

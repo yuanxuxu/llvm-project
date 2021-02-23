@@ -296,8 +296,12 @@ def uimm6gt32 : ImmLeaf<XLenVT, [{
 }]>;
 
 // Addressing modes.
-// Necessary because a frameindex can't be matched directly in a pattern.
+// 
 def AddrFI : ComplexPattern<iPTR, 1, "SelectAddrFI", [frameindex], []>;
+
+// xBGAS Addressing modes.
+// Necessary to perform automated lowering of instructions to BGAS memory ops
+def AddrXB : ComplexPattern<iPTRAny, 1, "SelectAddrXB", [], []>;
 
 // Extract least significant 12 bits from an immediate value and sign extend
 // them.
@@ -1361,6 +1365,49 @@ defm : LdPat<load, LD>;
 
 defm : StPat<truncstorei32, SW, GPR>;
 defm : StPat<store, SD, GPR>;
+} // Predicates = [IsRV64]
+
+//===----------------------------------------------------------------------===//
+// xBGAS Patterns: AddrXB address space
+//===----------------------------------------------------------------------===//
+/// Loads
+
+multiclass XLdPat<PatFrag LoadOp, RVInst Inst> {
+  def : Pat<(LoadOp AddrXB:$rs1), (Inst AddrXB:$rs1, 0)>;
+  def : Pat<(LoadOp (add AddrXB:$rs1, simm12:$imm12)),
+            (Inst AddrXB:$rs1, simm12:$imm12)>;
+  def : Pat<(LoadOp (IsOrAdd AddrXB:$rs1, simm12:$imm12)),
+            (Inst AddrXB:$rs1, simm12:$imm12)>;
+}
+
+defm : XLdPat<sextloadi8, ELB>;
+defm : XLdPat<extloadi8, ELB>;
+defm : XLdPat<sextloadi16, ELH>;
+defm : XLdPat<extloadi16, ELH>;
+defm : XLdPat<load, ELW>, Requires<[IsRV32]>;
+defm : XLdPat<zextloadi8, ELBU>;
+defm : XLdPat<zextloadi16, ELHU>;
+
+let Predicates = [IsRV64] in {
+  defm : XLdPat<load, ELD>, Requires<[IsRV64]>;
+} // Predicates = [IsRV64]
+
+/// Stores
+
+multiclass XStPat<PatFrag StoreOp, RVInst Inst, RegisterClass StTy> {
+  def : Pat<(StoreOp StTy:$rs2, AddrXB:$rs1), (Inst StTy:$rs2, AddrXB:$rs1, 0)>;
+  def : Pat<(StoreOp StTy:$rs2, (add AddrXB:$rs1, simm12:$imm12)),
+            (Inst StTy:$rs2, AddrXB:$rs1, simm12:$imm12)>;
+  def : Pat<(StoreOp StTy:$rs2, (IsOrAdd AddrXB:$rs1, simm12:$imm12)),
+            (Inst StTy:$rs2, AddrXB:$rs1, simm12:$imm12)>;
+}
+
+defm : XStPat<truncstorei8, ESB, GPR>;
+defm : XStPat<truncstorei16, ESH, GPR>;
+defm : XStPat<store, ESW, GPR>, Requires<[IsRV32]>;
+
+let Predicates = [IsRV64] in {
+  defm : XStPat<store, ESD, GPR>, Requires<[IsRV64]>;
 } // Predicates = [IsRV64]
 
 /// readcyclecounter
