@@ -25,11 +25,11 @@ using namespace llvm;
 
 #define DEBUG_TYPE "riscv-isel"
 
-#define _XBGAS_ADDR_SPACE_ 127
+// #define _XBGAS_ADDR_SPACE_ 127
+#define _XBGAS_ADDR_SPACE_MIN_ 10000
+#define _XBGAS_ADDR_SPACE_MAX_ 1000000
 
-void RISCVDAGToDAGISel::PostprocessISelDAG() {
-  doPeepholeLoadStoreADDI();
-}
+void RISCVDAGToDAGISel::PostprocessISelDAG() { doPeepholeLoadStoreADDI(); }
 
 static SDNode *selectImm(SelectionDAG *CurDAG, const SDLoc &DL, int64_t Imm,
                          MVT XLenVT) {
@@ -860,19 +860,32 @@ bool RISCVDAGToDAGISel::SelectAddrFI(SDValue Addr, SDValue &Base) {
 // Interrogate the operand address space designators
 // If the address space matches the xBGAS address space, return true
 // Otherwise, return false
+
+// bool RISCVDAGToDAGISel::SelectAddrXB(SDValue Addr, SDValue &Base) {
+//   LLVM_DEBUG(dbgs() << "SelectAddrXB DAG Selection\n");
+//   if (auto M = dyn_cast<MemSDNode>(Addr)){
+//     LLVM_DEBUG(dbgs() << "SelectAddrXB MemSDNode Node:\nNode:    ");
+//     LLVM_DEBUG(Addr->dump());
+//     LLVM_DEBUG(dbgs() << "AddrSpace=" << M->getPointerInfo().getAddrSpace());
+//     if( M->getPointerInfo().getAddrSpace() == _XBGAS_ADDR_SPACE_ ){
+//       LLVM_DEBUG(dbgs() << "Memory node is xBGAS address space\n");
+//       Base = Addr;
+//       return true;
+//     }
+//   }
+//   return false;
+// }
+
 bool RISCVDAGToDAGISel::SelectAddrXB(SDValue Addr, SDValue &Base) {
-  LLVM_DEBUG(dbgs() << "SelectAddrXB DAG Selection\n");
-  if (auto M = dyn_cast<MemSDNode>(Addr)){
-    LLVM_DEBUG(dbgs() << "SelectAddrXB MemSDNode Node:\nNode:    ");
-    LLVM_DEBUG(Addr->dump());
-    LLVM_DEBUG(dbgs() << "AddrSpace=" << M->getPointerInfo().getAddrSpace());
-    if( M->getPointerInfo().getAddrSpace() == _XBGAS_ADDR_SPACE_ ){  
-      LLVM_DEBUG(dbgs() << "Memory node is xBGAS address space\n");
+    auto M = dyn_cast<MemSDNode>(Addr));
+    unsigned addrspace = M->getPointerInfo().getAddrSpace();
+    if (addrspace >= _XBGAS_ADDR_SPACE_MIN_ &&
+        addrspace <= _XBGAS_ADDR_SPACE_MAX_) {
       Base = Addr;
       return true;
     }
-  }
-  return false;
+}
+return false;
 }
 
 bool RISCVDAGToDAGISel::SelectRVVBaseAddr(SDValue Addr, SDValue &Base) {
